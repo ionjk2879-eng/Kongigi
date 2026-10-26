@@ -1,28 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="108dp"
-    android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
-    <!-- 박스 몸체 -->
-    <path android:fillColor="#FFFFFF"
-        android:pathData="M20,52 L88,52 L88,84 L20,84 Z"/>
-    <!-- 박스 뚜껑 -->
-    <path android:fillColor="#FFFFFF"
-        android:pathData="M14,42 L94,42 L94,52 L14,52 Z"/>
-    <!-- 리본 세로 -->
-    <path android:fillColor="#81C784"
-        android:pathData="M48,42 L60,42 L60,84 L48,84 Z"/>
-    <!-- 리본 가로 (뚜껑 위) -->
-    <path android:fillColor="#81C784"
-        android:pathData="M14,42 L94,42 L94,52 L14,52 Z"/>
-    <!-- 나비매듭 왼쪽 -->
-    <path android:fillColor="#81C784"
-        android:pathData="M54,42 C50,37 40,30 34,22 C30,14 36,9 42,17 C48,25 52,40 54,42 Z"/>
-    <!-- 나비매듭 오른쪽 -->
-    <path android:fillColor="#81C784"
-        android:pathData="M54,42 C58,37 68,30 74,22 C78,14 72,9 66,17 C60,25 56,40 54,42 Z"/>
-    <!-- 매듭 중심 -->
-    <path android:fillColor="#4CAF50"
-        android:pathData="M47,38 L61,38 L61,46 L47,46 Z"/>
-</vector>
+<bitmap xmlns:android="http://schemas.android.com/apk/res/android"
+    android:src="@drawable/ic_kongigi"
+    android:gravity="center"/>
