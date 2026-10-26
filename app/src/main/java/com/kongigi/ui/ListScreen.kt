@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,6 +21,7 @@ import java.util.*
 fun ListScreen(vm: GifticonViewModel, onAdd: () -> Unit, onBarcode: (GifticonEntity) -> Unit) {
     val tabs = listOf("사용 가능", "D-7 이내", "사용 완료")
     var tab by remember { mutableIntStateOf(0) }
+    var toDelete by remember { mutableStateOf<GifticonEntity?>(null) }
 
     val now = System.currentTimeMillis()
     val soon = now + 7L * 24 * 60 * 60 * 1000
@@ -51,25 +53,48 @@ fun ListScreen(vm: GifticonViewModel, onAdd: () -> Unit, onBarcode: (GifticonEnt
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(items, key = { it.id }) { g ->
-                        GifticonCard(g, onClick = { onBarcode(g) })
+                        GifticonCard(g, onClick = { onBarcode(g) }, onDelete = { toDelete = g })
                     }
                 }
             }
         }
     }
+
+    toDelete?.let { g ->
+        AlertDialog(
+            onDismissRequest = { toDelete = null },
+            title = { Text("삭제") },
+            text = { Text("${g.brand} ${g.productName}을(를) 삭제하시겠어요?") },
+            confirmButton = {
+                TextButton(onClick = { vm.delete(g); toDelete = null }) {
+                    Text("삭제", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { toDelete = null }) { Text("취소") }
+            }
+        )
+    }
 }
 
 @Composable
-private fun GifticonCard(g: GifticonEntity, onClick: () -> Unit) {
+private fun GifticonCard(g: GifticonEntity, onClick: () -> Unit, onDelete: () -> Unit) {
     val fmt = remember { SimpleDateFormat("yyyy.MM.dd", Locale.KOREA) }
     val expiry = if (g.expiryDate > 0) fmt.format(Date(g.expiryDate)) else "날짜 없음"
 
     Card(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(g.brand.ifBlank { "브랜드 없음" }, style = MaterialTheme.typography.titleMedium)
-            Text(g.productName.ifBlank { "상품명 없음" }, style = MaterialTheme.typography.bodyMedium)
-            Text("유효기간: $expiry", style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.outline)
+        Row(Modifier.padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = 4.dp),
+            verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(g.brand.ifBlank { "브랜드 없음" }, style = MaterialTheme.typography.titleMedium)
+                Text(g.productName.ifBlank { "상품명 없음" }, style = MaterialTheme.typography.bodyMedium)
+                Text("유효기간: $expiry", style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.outline)
+            }
+            IconButton(onClick = onDelete) {
+                Icon(Icons.Default.Delete, contentDescription = "삭제",
+                    tint = MaterialTheme.colorScheme.error)
+            }
         }
     }
 }
