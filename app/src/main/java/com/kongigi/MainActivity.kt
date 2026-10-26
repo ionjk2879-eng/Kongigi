@@ -1,6 +1,7 @@
 package com.kongigi
 
 import android.Manifest
+import android.content.Context
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -8,6 +9,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -18,7 +21,9 @@ import androidx.work.WorkManager
 import com.google.android.gms.ads.MobileAds
 import com.kongigi.ui.AddScreen
 import com.kongigi.ui.BarcodeScreen
+import com.kongigi.ui.EditScreen
 import com.kongigi.ui.ListScreen
+import com.kongigi.ui.OnboardingScreen
 import com.kongigi.ui.theme.KongigiProjectTheme
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
@@ -29,6 +34,7 @@ class MainActivity : ComponentActivity() {
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         MobileAds.initialize(this)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -66,10 +72,21 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun KongigiApp() {
+    val context = LocalContext.current
     val navController = rememberNavController()
     val vm: GifticonViewModel = viewModel()
+    val prefs = context.getSharedPreferences("kongigi", Context.MODE_PRIVATE)
+    val start = if (prefs.getBoolean("onboarding_done", false)) "list" else "onboarding"
 
-    NavHost(navController, startDestination = "list") {
+    NavHost(navController, startDestination = start) {
+        composable("onboarding") {
+            OnboardingScreen(onDone = {
+                prefs.edit().putBoolean("onboarding_done", true).apply()
+                navController.navigate("list") {
+                    popUpTo("onboarding") { inclusive = true }
+                }
+            })
+        }
         composable("list") {
             ListScreen(
                 vm = vm,
@@ -83,10 +100,20 @@ private fun KongigiApp() {
         composable("add") {
             AddScreen(vm = vm, onBack = { navController.popBackStack() })
         }
+        composable("edit") {
+            val g = vm.selected
+            if (g != null) {
+                EditScreen(vm = vm, gifticon = g, onBack = { navController.popBackStack() })
+            }
+        }
         composable("barcode") {
             val g = vm.selected
             if (g != null) {
-                BarcodeScreen(g = g, onBack = { navController.popBackStack() })
+                BarcodeScreen(
+                    g = g,
+                    onBack = { navController.popBackStack() },
+                    onEdit = { navController.navigate("edit") }
+                )
             }
         }
     }

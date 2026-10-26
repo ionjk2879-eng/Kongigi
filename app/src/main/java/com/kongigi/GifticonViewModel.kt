@@ -28,6 +28,11 @@ class GifticonViewModel(app: Application) : AndroidViewModel(app) {
         persist()
     }
 
+    fun update(g: GifticonEntity) {
+        val idx = _all.indexOfFirst { it.id == g.id }
+        if (idx >= 0) { _all[idx] = g; persist() }
+    }
+
     fun markUsed(g: GifticonEntity) {
         val idx = _all.indexOfFirst { it.id == g.id }
         if (idx >= 0) { _all[idx] = g.copy(isUsed = true); persist() }

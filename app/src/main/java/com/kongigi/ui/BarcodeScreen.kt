@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -20,7 +21,7 @@ import com.kongigi.data.GifticonEntity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BarcodeScreen(g: GifticonEntity, onBack: () -> Unit) {
+fun BarcodeScreen(g: GifticonEntity, onBack: () -> Unit, onEdit: () -> Unit = {}) {
     val context = LocalContext.current
 
     // 계산대 앞에서 쓰는 화면 — 화면 밝기 최대로
@@ -38,6 +39,11 @@ fun BarcodeScreen(g: GifticonEntity, onBack: () -> Unit) {
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "뒤로")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onEdit) {
+                        Icon(Icons.Default.Edit, contentDescription = "수정")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)

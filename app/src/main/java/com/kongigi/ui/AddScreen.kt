@@ -15,6 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import coil.compose.AsyncImage
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
@@ -116,8 +118,11 @@ fun AddScreen(vm: GifticonViewModel, onBack: () -> Unit) {
                 label = { Text("상품명") }, modifier = Modifier.fillMaxWidth()
             )
             OutlinedTextField(
-                value = expiryText, onValueChange = { expiryText = it },
-                label = { Text("유효기간 (YYYY.MM.DD)") }, modifier = Modifier.fillMaxWidth()
+                value = expiryText,
+                onValueChange = { expiryText = formatExpiry(it) },
+                label = { Text("유효기간 (YYYY.MM.DD)") },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
             OutlinedTextField(
                 value = barcodeVal, onValueChange = { barcodeVal = it },
@@ -142,6 +147,16 @@ fun AddScreen(vm: GifticonViewModel, onBack: () -> Unit) {
             ) {
                 Text("저장")
             }
+        }
+    }
+}
+
+internal fun formatExpiry(input: String): String {
+    val d = input.filter { it.isDigit() }.take(8)
+    return buildString {
+        d.forEachIndexed { i, c ->
+            if (i == 4 || i == 6) append('.')
+            append(c)
         }
     }
 }
