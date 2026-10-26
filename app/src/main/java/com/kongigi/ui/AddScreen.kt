@@ -1,5 +1,6 @@
 package com.kongigi.ui
 
+import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -21,6 +22,7 @@ import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.korean.KoreanTextRecognizerOptions
 import com.kongigi.GifticonViewModel
 import com.kongigi.data.GifticonEntity
+import java.io.File
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,10 +39,11 @@ fun AddScreen(vm: GifticonViewModel, onBack: () -> Unit) {
 
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri ?: return@rememberLauncherForActivityResult
-        imageUri = uri
+        val localUri = copyToInternal(context, uri)
+        imageUri = localUri
         recognizing = true
 
-        val image = InputImage.fromFilePath(context, uri)
+        val image = InputImage.fromFilePath(context, localUri)
         val barcodeScanner = BarcodeScanning.getClient()
         val textRecognizer = TextRecognition.getClient(KoreanTextRecognizerOptions.Builder().build())
 
@@ -141,6 +144,13 @@ fun AddScreen(vm: GifticonViewModel, onBack: () -> Unit) {
             }
         }
     }
+}
+
+private fun copyToInternal(context: Context, uri: Uri): Uri {
+    val dir = File(context.filesDir, "images").apply { mkdirs() }
+    val file = File(dir, "${System.currentTimeMillis()}.jpg")
+    context.contentResolver.openInputStream(uri)?.use { it.copyTo(file.outputStream()) }
+    return Uri.fromFile(file)
 }
 
 private fun parseExpiryText(text: String): String {
