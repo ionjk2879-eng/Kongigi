@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.FileProvider
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -39,21 +40,22 @@ fun AddScreen(vm: GifticonViewModel, onBack: () -> Unit) {
     var barcodeVal by remember { mutableStateOf("") }
     var recognizing by remember { mutableStateOf(false) }
 
-    val picker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        uri ?: return@rememberLauncherForActivityResult
-        val localUri = copyToInternal(context, uri)
+    val cameraFile = remember {
+        File(context.filesDir, "temp").also { it.mkdirs() }.let { File(it, "camera_add.jpg") }
+    }
+    val cameraUri = remember {
+        FileProvider.getUriForFile(context, "${context.packageName}.provider", cameraFile)
+    }
+
+    fun runRecognition(localUri: Uri) {
         imageUri = localUri
         recognizing = true
-
         val image = InputImage.fromFilePath(context, localUri)
         val barcodeScanner = BarcodeScanning.getClient()
         val textRecognizer = TextRecognition.getClient(KoreanTextRecognizerOptions.Builder().build())
-
         var detectedBarcode = ""
         barcodeScanner.process(image)
-            .addOnSuccessListener { barcodes ->
-                detectedBarcode = barcodes.firstOrNull()?.rawValue ?: ""
-            }
+            .addOnSuccessListener { barcodes -> detectedBarcode = barcodes.firstOrNull()?.rawValue ?: "" }
             .addOnCompleteListener {
                 textRecognizer.process(image)
                     .addOnSuccessListener { visionText ->
@@ -70,6 +72,15 @@ fun AddScreen(vm: GifticonViewModel, onBack: () -> Unit) {
                         recognizing = false
                     }
             }
+    }
+
+    val picker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri ?: return@rememberLauncherForActivityResult
+        runRecognition(copyToInternal(context, uri))
+    }
+
+    val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        if (success) runRecognition(Uri.fromFile(cameraFile))
     }
 
     Scaffold(
@@ -91,8 +102,15 @@ fun AddScreen(vm: GifticonViewModel, onBack: () -> Unit) {
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            OutlinedButton(onClick = { picker.launch("image/*") }, Modifier.fillMaxWidth()) {
-                Text(if (imageUri == null) "갤러리에서 사진 선택" else "사진 다시 선택")
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(
+                    onClick = { camera.launch(cameraUri) },
+                    modifier = Modifier.weight(1f)
+                ) { Text("카메라 촬영") }
+                OutlinedButton(
+                    onClick = { picker.launch("image/*") },
+                    modifier = Modifier.weight(1f)
+                ) { Text(if (imageUri == null) "갤러리 선택" else "갤러리 다시") }
             }
 
             imageUri?.let {

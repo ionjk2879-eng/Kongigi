@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.kongigi.GifticonViewModel
 import com.kongigi.data.GifticonEntity
@@ -90,6 +91,15 @@ private fun GifticonCard(g: GifticonEntity, onClick: () -> Unit, onDelete: () ->
                 Text(g.productName.ifBlank { "상품명 없음" }, style = MaterialTheme.typography.bodyMedium)
                 Text("유효기간: $expiry", style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.outline)
+                if (g.remainingBalance != null) {
+                    val date = SimpleDateFormat("MM.dd", Locale.KOREA)
+                        .format(Date(g.balanceCheckedAt ?: 0))
+                    Text(
+                        "잔액 ${"%,d".format(g.remainingBalance)}원 · $date 기준",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF1B5E3B)
+                    )
+                }
             }
             IconButton(onClick = onDelete) {
                 Icon(Icons.Default.Delete, contentDescription = "삭제",

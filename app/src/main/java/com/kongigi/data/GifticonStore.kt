@@ -20,6 +20,8 @@ object GifticonStore {
                     put("barcodeValue", g.barcodeValue)
                     put("imageUri", g.imageUri)
                     put("isUsed", g.isUsed)
+                    put("remainingBalance", g.remainingBalance ?: -1)
+                    put("balanceCheckedAt", g.balanceCheckedAt ?: -1L)
                 })
             }
             File(context.filesDir, FILE).writeText(arr.toString())
@@ -38,6 +40,8 @@ object GifticonStore {
             android.util.Log.d("GifticonStore", "불러오기 완료: ${arr.length()}개")
             (0 until arr.length()).map { i ->
                 val o = arr.getJSONObject(i)
+                val rb = o.optInt("remainingBalance", -1)
+                val bt = o.optLong("balanceCheckedAt", -1L)
                 GifticonEntity(
                     id = o.getInt("id"),
                     brand = o.getString("brand"),
@@ -45,7 +49,9 @@ object GifticonStore {
                     expiryDate = o.getLong("expiryDate"),
                     barcodeValue = o.getString("barcodeValue"),
                     imageUri = o.getString("imageUri"),
-                    isUsed = o.getBoolean("isUsed")
+                    isUsed = o.getBoolean("isUsed"),
+                    remainingBalance = if (rb >= 0) rb else null,
+                    balanceCheckedAt = if (bt >= 0) bt else null
                 )
             }
         } catch (e: Exception) {

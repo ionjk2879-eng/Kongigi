@@ -7,5 +7,7 @@ data class GifticonEntity(
     val expiryDate: Long = 0L,
     val barcodeValue: String = "",
     val imageUri: String = "",
-    val isUsed: Boolean = false
+    val isUsed: Boolean = false,
+    val remainingBalance: Int? = null,
+    val balanceCheckedAt: Long? = null
 )

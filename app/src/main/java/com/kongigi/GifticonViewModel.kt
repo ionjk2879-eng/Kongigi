@@ -42,4 +42,14 @@ class GifticonViewModel(app: Application) : AndroidViewModel(app) {
         _all.removeIf { it.id == g.id }
         persist()
     }
+
+    fun updateBalance(id: Int, balance: Int, checkedAt: Long) {
+        val idx = _all.indexOfFirst { it.id == id }
+        if (idx >= 0) {
+            val updated = _all[idx].copy(remainingBalance = balance, balanceCheckedAt = checkedAt)
+            _all[idx] = updated
+            if (selected?.id == id) selected = updated
+            persist()
+        }
+    }
 }

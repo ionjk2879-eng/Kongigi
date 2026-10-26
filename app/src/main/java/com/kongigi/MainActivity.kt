@@ -20,10 +20,12 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.google.android.gms.ads.MobileAds
 import com.kongigi.ui.AddScreen
+import com.kongigi.ui.BalanceScreen
 import com.kongigi.ui.BarcodeScreen
 import com.kongigi.ui.EditScreen
 import com.kongigi.ui.ListScreen
 import com.kongigi.ui.OnboardingScreen
+import com.kongigi.ui.SplashScreen
 import com.kongigi.ui.theme.KongigiProjectTheme
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
@@ -76,9 +78,16 @@ private fun KongigiApp() {
     val navController = rememberNavController()
     val vm: GifticonViewModel = viewModel()
     val prefs = context.getSharedPreferences("kongigi", Context.MODE_PRIVATE)
-    val start = if (prefs.getBoolean("onboarding_done", false)) "list" else "onboarding"
 
-    NavHost(navController, startDestination = start) {
+    NavHost(navController, startDestination = "splash") {
+        composable("splash") {
+            SplashScreen(onFinish = {
+                val dest = if (prefs.getBoolean("onboarding_done", false)) "list" else "onboarding"
+                navController.navigate(dest) {
+                    popUpTo("splash") { inclusive = true }
+                }
+            })
+        }
         composable("onboarding") {
             OnboardingScreen(onDone = {
                 prefs.edit().putBoolean("onboarding_done", true).apply()
@@ -106,13 +115,20 @@ private fun KongigiApp() {
                 EditScreen(vm = vm, gifticon = g, onBack = { navController.popBackStack() })
             }
         }
+        composable("balance") {
+            val g = vm.selected
+            if (g != null) {
+                BalanceScreen(vm = vm, gifticon = g, onBack = { navController.popBackStack() })
+            }
+        }
         composable("barcode") {
             val g = vm.selected
             if (g != null) {
                 BarcodeScreen(
                     g = g,
                     onBack = { navController.popBackStack() },
-                    onEdit = { navController.navigate("edit") }
+                    onEdit = { navController.navigate("edit") },
+                    onBalanceRegister = { navController.navigate("balance") }
                 )
             }
         }

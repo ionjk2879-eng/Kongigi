@@ -1,6 +1,7 @@
 package com.kongigi.ui
 
 import android.app.Activity
+import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -18,13 +19,19 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.kongigi.data.GifticonEntity
+import java.text.SimpleDateFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BarcodeScreen(g: GifticonEntity, onBack: () -> Unit, onEdit: () -> Unit = {}) {
+fun BarcodeScreen(
+    g: GifticonEntity,
+    onBack: () -> Unit,
+    onEdit: () -> Unit = {},
+    onBalanceRegister: () -> Unit = {}
+) {
     val context = LocalContext.current
 
-    // 계산대 앞에서 쓰는 화면 — 화면 밝기 최대로
     DisposableEffect(Unit) {
         val window = (context as Activity).window
         val orig = window.attributes.screenBrightness
@@ -58,7 +65,7 @@ fun BarcodeScreen(g: GifticonEntity, onBack: () -> Unit, onEdit: () -> Unit = {}
                 .background(Color.White)
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             if (g.imageUri.isNotEmpty()) {
                 AsyncImage(
@@ -70,10 +77,51 @@ fun BarcodeScreen(g: GifticonEntity, onBack: () -> Unit, onEdit: () -> Unit = {}
                         .weight(1f)
                 )
             }
+
             if (g.barcodeValue.isNotEmpty()) {
                 Text(g.barcodeValue, style = MaterialTheme.typography.headlineSmall)
             }
-            Spacer(Modifier.height(16.dp))
+
+            // 잔액 표시
+            if (g.remainingBalance != null) {
+                val date = SimpleDateFormat("MM.dd", Locale.KOREA)
+                    .format(Date(g.balanceCheckedAt ?: 0))
+                Surface(
+                    color = Color(0xFF1B5E3B).copy(alpha = 0.1f),
+                    shape = MaterialTheme.shapes.small
+                ) {
+                    Text(
+                        "잔액 ${"%,d".format(g.remainingBalance)}원 · $date 기준",
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color(0xFF1B5E3B)
+                    )
+                }
+            }
+
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedButton(
+                    onClick = {
+                        val url = "https://www.google.com/search?q=${Uri.encode("${g.brand} 잔액 조회")}"
+                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("잔액 조회")
+                }
+                Button(
+                    onClick = onBalanceRegister,
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1B5E3B))
+                ) {
+                    Text("잔액 등록")
+                }
+            }
+
+            Spacer(Modifier.height(8.dp))
         }
     }
 }
